@@ -4,7 +4,7 @@ pandas==1.5.3
 scikit-learn==1.2.2
 matplotlib==3.6.3
 nibabel==5.0.1
-scikit-image==0.20.0
+scikit-image
 pillow==9.4.0
 monai==1.1.0
 opencv-python==4.7.0
