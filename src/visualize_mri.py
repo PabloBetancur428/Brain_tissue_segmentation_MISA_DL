@@ -39,9 +39,9 @@ def visualize_3d(image_data, voxel_spacing=(1.0, 1.0, 1.0)):
 
 if __name__ == "__main__":
     # File path to the NIfTI file
-    sample_folder = r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_16\IBSR_16.nii.gz".replace("\\", "/")
+    sample_folder = r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_01\IBSR_01.nii.gz".replace("\\", "/")
 
     # Load and visualize
-    voxel_spacing = (1.0, 1.5, 1.0)  # Example voxel spacing
+    voxel_spacing = (0.9375, 1.5, 0.9375)  # Example voxel spacing
     reduced_image = load_mri(sample_folder)
     visualize_3d(reduced_image, voxel_spacing)
