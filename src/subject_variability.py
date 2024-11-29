@@ -18,7 +18,9 @@ def compary_intensity_histograms(image_paths):
 if __name__ == '__main__':
     image_paths = [r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_01\IBSR_01.nii.gz".replace("\\", "/"),
                    r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_03\IBSR_03.nii.gz".replace("\\", "/"),
-                   r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_04\IBSR_04.nii.gz".replace("\\", "/"),
-                   r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_05\IBSR_05.nii.gz".replace("\\", "/")]
+                   r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_07\IBSR_07.nii.gz".replace("\\", "/"),
+                   r"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MISSSSSA\Final_project\TrainingValidationTestSets\Training_Set\IBSR_16\IBSR_16.nii.gz".replace("\\", "/")
+                   ]
+    
     
     compary_intensity_histograms(image_paths)
