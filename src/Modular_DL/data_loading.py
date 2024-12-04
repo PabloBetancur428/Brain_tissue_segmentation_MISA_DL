@@ -13,7 +13,7 @@ def load_nifti(file_path):
 
     return data, affine, voxel_spacing
 
-def resample_image(image, target_spacing, is_label = False):
+def resample_image(image, target_spacing = (1.0,1.0,1.0) , is_label = False):
 
     original_spacing = image.GetSpacing()
     original_size = image.GetSize()
