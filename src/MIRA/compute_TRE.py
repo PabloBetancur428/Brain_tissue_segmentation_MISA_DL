@@ -62,7 +62,7 @@ if __name__ == "__main__":
         tre, mean_tre = calculate_tre(landmarks_exhale, landmarks_inhale)
 
         #print(f"TRE for each landmark: {tre}")
-        print(f"Mean TRE: {mean_tre:.4f} mm for copd{i + 1}" )
+        print(f"Mean TRE: {mean_tre:.4f} mm for copd{i + 1}")
 
     print("\n")
         
