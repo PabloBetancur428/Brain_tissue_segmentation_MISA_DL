@@ -70,9 +70,10 @@ class Dataloader_2D(Dataset):
             sample = self.transform(sample)
 
         
-        image_tensor = torch.tensor(sample['image'], dtype = torch.float32).unsqueeze(0)
+        image_tensor = torch.tensor(sample['image'], dtype = torch.float32).unsqueeze(0) # to add a channel dimension since image is gray
         label_tensor = torch.tensor(sample['label'], dtype = torch.long)
 
-    
+        print(f"img tensor {image_tensor.shape}", flush=True)
+        print(f"label tensor {label_tensor.shape}", flush=True)
 
         return image_tensor, label_tensor
