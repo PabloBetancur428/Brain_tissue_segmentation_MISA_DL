@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 from torchvision import datasets, transforms
 import numpy as np
 import nibabel as nib
+from nibabel.orientations import aff2axcodes, axcodes2ornt, ornt_transform
 import os
 
 class ImageFolderWIthPaths(datasets.ImageFolder):
