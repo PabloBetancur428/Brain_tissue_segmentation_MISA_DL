@@ -11,6 +11,7 @@ def load_landmarks(file_path, voxel_spacing):
     vz = voxel_spacing[2]
     with open(file_path, "r") as f:
         for line in f:
+            
             part = line.strip().split("\t")
 
             if len(part) >= 3:
@@ -20,6 +21,24 @@ def load_landmarks(file_path, voxel_spacing):
 
     return np.array(landmarks)
 
+
+def load_landmarks_afterreg(file_path, voxel_spacing):
+
+    landmarks = []
+    vx = voxel_spacing[0]
+    vy = voxel_spacing[1]
+    vz = voxel_spacing[2]
+    with open(file_path, "r") as f:
+        for line in f:
+            
+            part = line.strip().split(" ")
+
+            if len(part) >= 3:
+                x, y, z = [float(part) - 1 for part in part[:3] if part.strip()] #Removes one to account for origin in 1,1,1
+                
+                landmarks.append([x * vx, y * vy , z * vz])
+
+    return np.array(landmarks)
 
 def calculate_tre(landmarks_inhale, landmarks_exhale):
     """
@@ -49,20 +68,23 @@ def calculate_tre(landmarks_inhale, landmarks_exhale):
 if __name__ == "__main__":
     print("\n")
     voxel_spacing_vals = [[0.625, 0.625, 2.5], [0.645, 0.645, 2.5], [0.652, 0.652, 2.5], [0.590, 0.590, 2.5]]
-
-    for i in range(4):
+    files_numer = 1
+    for i in range(files_numer):
        
-        landmarks_ex_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{i + 1}\copd{i + 1}\copd{i + 1}_300_eBH_xyz_r1.txt".replace("\\", "/")
-        landmarks_in_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{i + 1}\copd{i + 1}\copd{i + 1}_300_iBH_xyz_r1.txt".replace("\\", "/")
+        #landmarks_ex_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{i + 1}\copd{i + 1}\copd{i + 1}_300_eBH_xyz_r1.txt".replace("\\", "/")
+        #landmarks_in_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{i + 1}\copd{i + 1}\copd{i + 1}_300_iBH_xyz_r1.txt".replace("\\", "/")
+        landmarks_ex_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_300_eBH_xyz_r1.txt".replace("\\","/")
+        landmarks_in_path = fr"C:/Users/User/Desktop/UDG_old_pc/UDG/Subjects/MIRRRRA/Final_project/training_pruebas_trans/transformed_points/outputpoints_1_par0007_fine.txt".replace("\\","/")
 
         #Load voxel spacing for getting TRE in mm
         voxel_spacing = voxel_spacing_vals[i]
         landmarks_exhale = load_landmarks(landmarks_ex_path,voxel_spacing)
-        landmarks_inhale = load_landmarks(landmarks_in_path, voxel_spacing)
+        landmarks_inhale = load_landmarks_afterreg(landmarks_in_path, voxel_spacing)
+        print("EX: ", landmarks_exhale.shape)
+        print("IN: ", landmarks_inhale)
         tre, mean_tre = calculate_tre(landmarks_exhale, landmarks_inhale)
 
         #print(f"TRE for each landmark: {tre}")
         print(f"Mean TRE: {mean_tre:.4f} mm for copd{i + 1}")
 
     print("\n")
-        
