@@ -1,17 +1,15 @@
+#Notebook to convert points to images
 import numpy as np
 import SimpleITK as sitk
 import nibabel as nib
 
 
-
-
-
-
 if __name__ == "__main__":
 
-    landmark_txt_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_300_eBH_xyz_r1.txt".replace("\\", "/")
-    reference_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_eBHCT.nii.gz".replace("\\", "/")
-    output_nifti_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_300_eBH_xyz_r1.nii".replace("\\", "/")
+    val = "4"
+    landmark_txt_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_300_iBH_xyz_r1.txt".replace("\\", "/")
+    reference_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_iBHCT.nii.gz".replace("\\", "/")
+    output_nifti_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_300_iBH_xyz_r1.nii".replace("\\", "/")
 
     ref_img = nib.load(reference_image_path)
     ref_data = ref_img.get_fdata()
@@ -33,3 +31,4 @@ if __name__ == "__main__":
     
     landmark_img = nib.Nifti1Image(landmark_volume, ref_affine)
     nib.save(landmark_img, output_nifti_path)
+    print("pathoutput:", output_nifti_path)
