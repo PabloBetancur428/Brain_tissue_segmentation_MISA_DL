@@ -115,50 +115,36 @@ def save_transformed_landmarks_as_nifti(reference_image, transformed_points_path
 
 
 def main():
-    # Paths to your data
-    #landmark_txt_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_300_eBH_xyz_r1.txt".replace("\\", "/")
-    #reference_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_iBHCT.nii.gz".replace("\\", "/")
-    #output_nifti_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_300_eBH_xyz_r1.nii".replace("\\", "/")
-    fixed_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_eBHCT.nii\copd1_eBHCT.nii".replace("\\", "/")
-    moving_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_iBHCT.nii\copd1_iBHCT.nii".replace("\\", "/")
-    fixed_landmarks_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_300_eBH_xyz_r1.txt".replace("\\", "/")
-    moving_landmarks_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd1\copd1\copd1_300_iBH_xyz_r1.txt".replace("\\", "/")
+
+    val = "4"
+    #dìa del reto
+    fixed_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_iBHCT.nii.gz".replace("\\", "/")
+    moving_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_eBHCT.nii.gz".replace("\\", "/")
+    fixed_landmarks_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_300_iBH_xyz_r1.txt".replace("\\", "/")
+    moving_landmarks_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_300_eBH_xyz_r1.txt".replace("\\", "/")
     output_path_landmarks = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans".replace("\\", "/")
-    param_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Transform_params\par_007\Parameters.MI.RP.Bspline_tuned.txt".replace("\\", "/")
+    param_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Transform_params\par_007\Parameters.MI.Fine.Bspline_tuned.txt".replace("\\", "/")
     output_dir = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans".replace("\\", "/")
 
-    # Step 1: Load Images (just to ensure they exist and shape)
-    fixed_img, fixed_data, fixed_affine = load_nifti_image(fixed_image_path)
-    moving_img, moving_data, moving_affine = load_nifti_image(moving_image_path)
+    # Not necessary
+    #fixed_img, fixed_data, fixed_affine = load_nifti_image(fixed_image_path)
+    #moving_img, moving_data, moving_affine = load_nifti_image(moving_image_path)
 
-    # Step 2: Load Landmarks
-    # Assume they are provided with origin 1, so we convert to 0-based
-    #fixed_landmarks = load_nifti_image(fixed_landmarks_path)
-    #moving_landmarks, moving_landmarks_data, moving_landmarks_affine = load_nifti_image(moving_landmarks_path)
 
     fixed_landmarks = load_landmarks(fixed_landmarks_path)
     moving_landmarks = load_landmarks(moving_landmarks_path)
 
-    save_points_for_transformix(fixed_landmarks, output_path_landmarks + "/fixed_landmarks_1.txt")
-    save_points_for_transformix(moving_landmarks, output_path_landmarks + "/moving_landmarks_1.txt")
+    save_points_for_transformix(fixed_landmarks, output_path_landmarks + f"/fixed_landmarks_{val}.txt")
+    save_points_for_transformix(moving_landmarks, output_path_landmarks + f"/moving_landmarks_{val}.txt")
 
     #Moving
 
-    moving_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\moving_landmarks_1.txt".replace("\\","/")
-    fixed_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\fixed_landmarks_1.txt".replace("\\","/")
-    #print(train_landmarks)
-
-    # Step 3: (Optional) Save moving landmarks in elastix format for transformix later
-    # If you want to see how they transform after registration
-    #moving_points_elastix = os.path.join(output_dir, "moving_points.txt")
-    #save_landmarks_to_elastix_format(moving_landmarks, moving_points_elastix)
-
-    # Step 4: Run Elastix Registration
-    # This will produce TransformParameters.0.txt in output_dir
+    #moving_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\moving_landmarks_1.txt".replace("\\","/")
+    fixed_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\fixed_landmarks_{val}.txt".replace("\\","/")
+    #moving_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\moving_landmarks_{val}.txt".replace("\\","/")
     run_elastix(fixed_image_path, moving_image_path, param_file, output_dir)
 
-    # Step 5: After registration, we have a transform that maps from moving to fixed space.
-    # Let's assume we want to transform the moving landmarks to fixed space:
+
     transform_parameter_file = os.path.join(output_dir, "TransformParameters.0.txt")
     transformed_points_dir = os.path.join(output_dir, "transformed_points")
 
@@ -166,8 +152,11 @@ def main():
     #dia de challenge 
     run_transformix(fixed_landmarks_1, transform_parameter_file, transformed_points_dir)
 
+    print(f"Transform done for patient {val}")
     # The result will be a file named outputpoints.txt in transformed_points_dir with the moved landmark locations.
 
 
 if __name__ == "__main__":
     main()
+
+    
