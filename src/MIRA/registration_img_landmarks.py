@@ -4,16 +4,6 @@ import numpy as np
 import nibabel as nib
 
 
-def load_nifti_image(image_path):
-    """
-    Load a NIfTI image and return the image object and its numpy array.
-    """
-    img = nib.load(image_path)
-    data = img.get_fdata()
-    affine = img.affine
-    return img, data, affine
-
-
 def load_landmarks(landmark_path, origin_one=True):
     """
     Load landmarks from a txt file. Each line: x y z
@@ -53,7 +43,7 @@ def extract_landmarks_from_nifti(landmark_data):
     coordinates = np.argwhere(landmark_data > 0)
     return coordinates
 
-def run_elastix(fixed_image, moving_image, param_file, output_dir):
+def run_elastix(fixed_image, moving_image, mask_fixed, param_file, output_dir):
     """
     Run elastix registration using subprocess.
     fixed_image: path to fixed image (.nii or .mhd, etc.)
@@ -68,6 +58,7 @@ def run_elastix(fixed_image, moving_image, param_file, output_dir):
         fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Labs\ATLAS\elastix-5.0.0-win64\elastix.exe".replace("\\","/"),
         "-f", fixed_image,
         "-m", moving_image,
+        "-fMask", mask_fixed,
         "-out", output_dir,
         "-p", param_file
     ]
@@ -117,43 +108,40 @@ def save_transformed_landmarks_as_nifti(reference_image, transformed_points_path
 def main():
 
     val = "4"
-    #dìa del reto
+    #Intensity images
     fixed_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_iBHCT.nii.gz".replace("\\", "/")
     moving_image_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_eBHCT.nii.gz".replace("\\", "/")
+    #Landmarks
     fixed_landmarks_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_300_iBH_xyz_r1.txt".replace("\\", "/")
     moving_landmarks_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_300_eBH_xyz_r1.txt".replace("\\", "/")
+    #Mask
+    mask_fixed = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_mask_eBHCT.nii".replace("\\", "/")
     output_path_landmarks = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans".replace("\\", "/")
-    param_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Transform_params\par_007\Parameters.MI.Fine.Bspline_tuned.txt".replace("\\", "/")
+    param_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Transform_params\Parameters_BSpline.txt".replace("\\", "/")
     output_dir = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans".replace("\\", "/")
 
-    # Not necessary
-    #fixed_img, fixed_data, fixed_affine = load_nifti_image(fixed_image_path)
-    #moving_img, moving_data, moving_affine = load_nifti_image(moving_image_path)
-
-
+    #Load landmarks substracting 1 from matlab syntax
     fixed_landmarks = load_landmarks(fixed_landmarks_path)
     moving_landmarks = load_landmarks(moving_landmarks_path)
 
+    #Save the points in the proper transformix format
     save_points_for_transformix(fixed_landmarks, output_path_landmarks + f"/fixed_landmarks_{val}.txt")
     save_points_for_transformix(moving_landmarks, output_path_landmarks + f"/moving_landmarks_{val}.txt")
 
-    #Moving
-
-    #moving_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\moving_landmarks_1.txt".replace("\\","/")
+    #Load the points in the proper format
     fixed_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\fixed_landmarks_{val}.txt".replace("\\","/")
-    #moving_landmarks_1 = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\moving_landmarks_{val}.txt".replace("\\","/")
-    run_elastix(fixed_image_path, moving_image_path, param_file, output_dir)
+
+    #Intensity based registration
+    run_elastix(fixed_image_path, moving_image_path, mask_fixed,  param_file, output_dir)
 
 
     transform_parameter_file = os.path.join(output_dir, "TransformParameters.0.txt")
     transformed_points_dir = os.path.join(output_dir, "transformed_points")
 
-    #I should set fixedlandmarks
-    #dia de challenge 
+
     run_transformix(fixed_landmarks_1, transform_parameter_file, transformed_points_dir)
 
     print(f"Transform done for patient {val}")
-    # The result will be a file named outputpoints.txt in transformed_points_dir with the moved landmark locations.
 
 
 if __name__ == "__main__":
