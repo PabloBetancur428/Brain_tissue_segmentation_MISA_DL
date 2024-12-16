@@ -6,8 +6,9 @@ def create_lung_mask(ct_image, kernel):
     #smooth_img = sitk.SmoothingRecursiveGaussian(ct_image) #reduces noise in the image
     #equalized_image = sitk.AdaptiveHistogramEqualization(smooth_img, alpha=0.3, beta=0.3) #enhances contrast
     
-    threshold = sitk.BinaryThreshold(ct_image, lowerThreshold = 60, upperThreshold = 800, insideValue=1, outsideValue=0)
-    
+    threshold = sitk.BinaryThreshold(ct_image, lowerThreshold = 160, upperThreshold = 600, insideValue=1, outsideValue=0)
+    #threshold = sitk.OtsuThreshold(ct_image, insideValue=1, outsideValue=0)
+
     #Morphological operations to clean up the holes of the thresholded image
     fill_holes = sitk.BinaryFillholeImageFilter()
     mask = fill_holes.Execute(threshold)
@@ -16,6 +17,7 @@ def create_lung_mask(ct_image, kernel):
     foreground_value = 1
 
     mask_after_fill = sitk.BinaryMorphologicalClosing(mask, kernel_radius,foreground_value)
+    #mask_cleaned = sitk.BinaryMorphologicalOpening(mask_after_fill, 5)
 
     #Only keep largest connected components (lungs)
     cc = sitk.ConnectedComponent(mask_after_fill)
@@ -23,13 +25,16 @@ def create_lung_mask(ct_image, kernel):
     stats.Execute(cc)
     #Does this returns the largest connected component in pos [0]
 
+   
     labels = stats.GetLabels()
+    
 
     if not labels:
         print("WARNING: NO CONNECTED COMPONENTS IN MASK")
         return threshold
 
     largest_label = max(labels, key = lambda x : stats.GetPhysicalSize(x))
+    print(f"Largest connected component label: {largest_label}")
     lung_mask = sitk.Equal(cc, largest_label)
 
     return lung_mask
@@ -38,7 +43,7 @@ def create_lung_mask(ct_image, kernel):
 def main():
 
     moments = ["inhale", "exhale"]
-    val = "1"
+    val = "4"
 
     inhale_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_iBHCT.nii.gz".replace("\\", "/")
     exhale_path = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\Training data-20241123\copd{val}\copd{val}\copd{val}_eBHCT.nii.gz".replace("\\", "/")
