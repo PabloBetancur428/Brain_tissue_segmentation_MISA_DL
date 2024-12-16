@@ -33,8 +33,8 @@ if __name__ == "__main__":
 
     output_points_file = fr"C:\Users\User\Desktop\UDG_old_pc\UDG\Subjects\MIRRRRA\Final_project\training_pruebas_trans\transformed_points\outputpoints.txt".replace("\\", "/")
 
-    val = "4"
-    output_xyz_file = fr"C:/Users/User/Desktop/UDG_old_pc/UDG/Subjects/MIRRRRA/Final_project/training_pruebas_trans/transformed_points/outputpoints_{val}_HPJFine.txt".replace("\\", "/")
+    val = "3"
+    output_xyz_file = fr"C:/Users/User/Desktop/UDG_old_pc/UDG/Subjects/MIRRRRA/Final_project/training_pruebas_trans/transformed_points/outputpoints_{val}_BSpline_masked.txt".replace("\\", "/")
 
 
     extract_output_points(output_points_file, output_xyz_file)
