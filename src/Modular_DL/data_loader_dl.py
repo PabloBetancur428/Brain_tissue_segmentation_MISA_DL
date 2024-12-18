@@ -47,6 +47,17 @@ class Dataloader_2D(Dataset):
             # Index slices for iteration
             depth = img_data.shape[0]  # Number of slices along Depth
             for d in range(depth):
+                img_slice = img_data[d, :, :]
+                lbl_slice = lbl_data[d, :, :] if lbl_data is not None else None
+                
+                #Check for empty slice
+                if not self.test_mode:
+                    if img_slice.sum() == 0 and lbl_slice.sum() == 0:
+                        continue #Skip this slice since it's empty
+                else:
+                    if img_slice.sum() == 0:
+                        continue #Skip empty slices in test
+                     
                 self.slice_indices.append((i, d))
 
     def __len__(self):
