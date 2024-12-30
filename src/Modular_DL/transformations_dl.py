@@ -4,6 +4,7 @@ import numpy as np
 from torchvision.transforms import Compose
 import torchvision.transforms.functional as TF
 import cv2
+from scipy.ndimage import gaussian_filter, map_coordinates
 
     
 #Best normalization for consistent visual scaling and values between 0 and 1
@@ -17,106 +18,100 @@ class MinMaxNormalize:
 # Example: Random Flip Transformation
 # Random Flip Transformation
 class RandomFlip:
+    def __init__(self, p=0.5):
+        self.p = p
+
     def __call__(self, sample):
         image, label = sample['image'], sample['label']
-        if np.random.rand() > 0.5:  # Random horizontal flip
-            image = np.fliplr(image).copy()
-            label = np.fliplr(label).copy()
-        if np.random.rand() > 0.5:  # Random vertical flip
-            image = np.flipud(image).copy()
-            label = np.flipud(label).copy()
+        if np.random.random() < self.p:
+            axis = np.random.choice([0, 1])
+            image = np.flip(image, axis=axis).copy()
+            label = np.flip(label, axis=axis).copy()
         return {'image': image, 'label': label}
 
 # Random Rotation
 class RandomRotate:
+    def __init__(self, p=0.5):
+        self.p = p
+
     def __call__(self, sample):
         image, label = sample['image'], sample['label']
-        k = np.random.choice([0, 1, 2, 3])  # Rotate 0, 90, 180, or 270 degrees
-        image = np.rot90(image, k, axes=(0, 1)).copy()
-        label = np.rot90(label, k, axes=(0, 1)).copy()
+        if np.random.random() < self.p:
+            k = np.random.choice([0, 2])  # Rotate 0, 90, 180, or 270 degrees
+            image = np.rot90(image, k, axes=(0, 1)).copy()
+            label = np.rot90(label, k, axes=(0, 1)).copy()
+        return {'image': image, 'label': label}
+    
+class GaussianBlur:
+    def __init__(self, kernel_size=5, sigma=(0.1, 2.0), p=0.5):
+        self.kernel_size = kernel_size
+        self.sigma = sigma
+        self.p = p
+
+    def __call__(self, sample):
+        image, label = sample['image'], sample['label']
+        if np.random.random() < self.p:
+            sigma = np.random.uniform(self.sigma[0], self.sigma[1])
+            image = cv2.GaussianBlur(image, (self.kernel_size, self.kernel_size), sigma)
+        return {'image': image, 'label': label}
+
+class Cutout:
+    def __init__(self, size=16, p=0.5):
+        self.size = size
+        self.p = p
+
+    def __call__(self, sample):
+        image, label = sample['image'], sample['label']
+        if np.random.random() < self.p:
+            h, w = image.shape[:2]
+            x = np.random.randint(0, w)
+            y = np.random.randint(0, h)
+            x1 = np.clip(x - self.size // 2, 0, w)
+            x2 = np.clip(x + self.size // 2, 0, w)
+            y1 = np.clip(y - self.size // 2, 0, h)
+            y2 = np.clip(y + self.size // 2, 0, h)
+            image[y1:y2, x1:x2] = 0
+        return {'image': image, 'label': label}
+    
+class ElasticTransform:
+    def __init__(self, alpha=1000, sigma=30, p=0.5):
+        self.alpha = alpha
+        self.sigma = sigma
+        self.p = p
+
+    def __call__(self, sample):
+        image, label = sample['image'], sample['label']
+        if np.random.random() < self.p:
+            shape = image.shape
+            dx = gaussian_filter((np.random.rand(*shape) * 2 - 1), self.sigma) * self.alpha
+            dy = gaussian_filter((np.random.rand(*shape) * 2 - 1), self.sigma) * self.alpha
+            x, y = np.meshgrid(np.arange(shape[1]), np.arange(shape[0]))
+            indices = np.reshape(y+dy, (-1, 1)), np.reshape(x+dx, (-1, 1))
+            image = map_coordinates(image, indices, order=1).reshape(shape)
+            label = map_coordinates(label, indices, order=0).reshape(shape)
         return {'image': image, 'label': label}
     
 class RandomIntensityScale:
-    def __init__(self, scale_range=(0.9, 1.1), shift_range=(-0.1, 0.1)):
-        """
-        Parameters:
-        - scale_range (tuple): A tuple (min_scale, max_scale) specifying the range from which 
-          a random scale factor is chosen. The image intensities are multiplied by this factor.
-        - shift_range (tuple): A tuple (min_shift, max_shift) specifying the range for a random 
-          intensity shift. After scaling, a shift is added to the intensities.
-
-        For example, if scale_range=(0.9, 1.1), then at runtime the method may pick a scale of 1.05, 
-        which means image = image * 1.05.
-        
-        If shift_range=(-0.1, 0.1), then it might pick shift=0.05, which means image = image + 0.05 
-        after scaling.
-        """
+    def __init__(self, scale_range=(0.95, 1.05), shift_range=(-0.02, 0.02), p=0.5):
         self.scale_range = scale_range
         self.shift_range = shift_range
+        self.p = p
 
     def __call__(self, sample):
         image, label = sample['image'], sample['label']
-        scale = np.random.uniform(*self.scale_range)   # Random scale factor
-        shift = np.random.uniform(*self.shift_range)   # Random intensity offset
-        image = (image * scale) + shift
+        if np.random.random() < self.p:
+            scale = np.random.uniform(*self.scale_range)
+            shift = np.random.uniform(*self.shift_range)
+            image = (image * scale) + shift
         return {'image': image, 'label': label}
-
-class RandomCrop:
-    def __init__(self, crop_size=(128,128)):
-        """
-        Parameters:
-        - crop_size (tuple): The desired output (height, width). A random region of the original 
-          image/label is extracted to this size.
-
-        This helps the model focus on smaller patches, potentially increasing data variability 
-        and reducing overfitting.
-        """
-        self.crop_size = crop_size
-
-    def __call__(self, sample):
-        image, label = sample['image'], sample['label']
-        h, w = image.shape
-        ch, cw = self.crop_size
-        
-        if ch > h or cw > w:
-            # If desired crop is larger than image, just return original or consider padding
-            return {'image': image, 'label': label}
-
-        # Random top-left corner for cropping
-        top = np.random.randint(0, h - ch + 1)
-        left = np.random.randint(0, w - cw + 1)
-
-        image_cropped = image[top:top+ch, left:left+cw]
-        label_cropped = label[top:top+ch, left:left+cw]
-
-        return {'image': image_cropped, 'label': label_cropped}
-    
-class GaussianBlur:
-    def __init__(self, kernel_size=3, sigma=1.0):
-        """
-        Parameters:
-        - kernel_size (int): Size of the Gaussian kernel. Must be odd. Larger kernels blur more.
-        - sigma (float): Standard deviation of the Gaussian. Higher sigma = more blurring.
-
-        Gaussian blur smooths out noise and small details, making the model robust to 
-        differences in image sharpness.
-        """
-        self.kernel_size = kernel_size
-        self.sigma = sigma
-
-    def __call__(self, sample):
-        image, label = sample['image'], sample['label']
-        # Gaussian blur only on image, not label (labels should remain crisp)
-        blurred_image = cv2.GaussianBlur(image, (self.kernel_size, self.kernel_size), self.sigma)
-        return {'image': blurred_image, 'label': label}
     
 # Example: Compose Training Transformations
 def get_training_transformations():
     return Compose([
-        RandomFlip(),
-        RandomRotate(),
-        RandomIntensityScale(scale_range=(0.9,1.1), shift_range=(-0.05,0.05)),
-        GaussianBlur(kernel_size = 3, sigma = 1.0),
+        RandomRotate(p = 0.3),
+        RandomFlip(p = 0.3),
+        RandomIntensityScale(p = 0.5),
+        Cutout(p = 0.5),
         MinMaxNormalize(),  # Normalize
     ])
 
