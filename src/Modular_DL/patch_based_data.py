@@ -12,7 +12,8 @@ class PatchDataloader_2D(Dataset):
         transform=None,
         test_mode=False,
         patch_size=(128, 128),
-        num_patches_per_slice=5
+        num_patches_per_slice=5,
+        view = 'axial'
     ):
         """
         A patch-based dataset loader. For each 3D volume, we:
@@ -37,6 +38,8 @@ class PatchDataloader_2D(Dataset):
 
         self.image_files = image_files
         self.label_files = label_files if not test_mode else None
+
+        self.view = view
 
         # Cache volumes: list of (img_data, lbl_data)
         self.volumes_cache = []
@@ -68,10 +71,27 @@ class PatchDataloader_2D(Dataset):
             self.volumes_cache.append((img_data, lbl_data))
 
             # Build a slice index just like in Dataloader_2D
-            depth = img_data.shape[0]
+            if view == 'axial':
+                depth = img_data.shape[0]
+            elif view == 'coronal':
+                depth = img_data.shape[1]
+            elif view == 'sagittal':
+                depth = img_data.shape[2]
+            else:
+                raise ValueError(f"Invalid view: {view}")
+            
             for d in range(depth):
-                img_slice = img_data[d, :, :]
-                lbl_slice = lbl_data[d, :, :] if lbl_data is not None else None
+                if view == 'axial':
+                    img_slice = img_data[d, :, :]
+                    lbl_slice = lbl_data[d, :, :] if lbl_data is not None else None
+                elif view == 'coronal':
+                    img_slice = img_data[:, d, :]
+                    lbl_slice = lbl_data[:, d, :] if lbl_data is not None else None
+                elif view == 'sagittal':
+                    img_slice = img_data[:, :, d]
+                    lbl_slice = lbl_data[:, :, d] if lbl_data is not None else None
+
+
 
                 # Skip empty slices
                 if not test_mode:
@@ -94,13 +114,34 @@ class PatchDataloader_2D(Dataset):
         vol_i, slice_i, patch_i = self.slice_patch_indices[idx]
         img_data, lbl_data = self.volumes_cache[vol_i]
 
-        # Extract the slice (2D). shape [H, W]
-        img_slice = img_data[slice_i, :, :].copy()
 
-        if self.test_mode:
-            lbl_slice = np.zeros_like(img_slice, dtype=np.int64)
-        else:
-            lbl_slice = lbl_data[slice_i, :, :].copy()
+        if self.view == 'axial':
+            # Extract the slice (2D). shape [H, W]
+            img_slice = img_data[slice_i, :, :].copy()
+
+            if self.test_mode:
+                lbl_slice = np.zeros_like(img_slice, dtype=np.int64)
+            else:
+                lbl_slice = lbl_data[slice_i, :, :].copy()
+        
+        elif self.view == 'coronal':
+            img_slice = img_data[:, slice_i, :].copy()
+
+            if self.test_mode:
+                lbl_slice = np.zeros_like(img_slice, dtype=np.int64)
+            else:
+                lbl_slice = lbl_data[:, slice_i, :].copy()
+
+        elif self.view == 'sagittal':
+
+            img_slice = img_data[:, :, slice_i].copy()
+
+            if self.test_mode:
+                lbl_slice = np.zeros_like(img_slice, dtype=np.int64)
+            else:
+                lbl_slice = lbl_data[:, :, slice_i].copy()
+
+
 
         # ---------------------------
         # 2) RANDOM PATCH SAMPLING
