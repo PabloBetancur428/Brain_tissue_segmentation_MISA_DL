@@ -4,7 +4,7 @@ import numpy as np
 import SimpleITK as sitk
 
 class Dataloader_2D(Dataset):
-    def __init__(self, image_files, label_files = None, transform=None, test_mode = False):
+    def __init__(self, image_files, label_files = None, transform=None, test_mode = False, view = 'axial'):
         """
         Initialize the Dataloader to load 2D slices from 3D medical images.
         Args:
@@ -17,6 +17,8 @@ class Dataloader_2D(Dataset):
         #self.image_label_pairs = list(zip(image_files, label_files))
         self.image_files = image_files
         self.label_files = label_files if not test_mode else None
+
+        self.view = view
 
         self.slice_indices = []  # To index slices across volumes
         self.volumes_cache = []  # Cache to hold image and label data
@@ -44,11 +46,27 @@ class Dataloader_2D(Dataset):
             # Cache the volumes
             self.volumes_cache.append((img_data, lbl_data))
 
-            # Index slices for iteration
-            depth = img_data.shape[0]  # Number of slices along Depth
+            if view == 'axial':
+                depth = img_data.shape[0]
+            elif view == 'coronal':
+                depth = img_data.shape[1]
+            elif view == 'sagittal':
+                depth = img_data.shape[2]
+            else:
+                raise ValueError(f"Invalid view: {view}")
+            
             for d in range(depth):
-                img_slice = img_data[d, :, :]
-                lbl_slice = lbl_data[d, :, :] if lbl_data is not None else None
+                if view == 'axial':
+                    img_slice = img_data[d, :, :]
+                    lbl_slice = lbl_data[d, :, :] if lbl_data is not None else None
+                
+                elif view == 'coronal':
+                    img_slice = img_data[:, d, :]
+                    lbl_slice = lbl_data[:, d, :] if lbl_data is not None else None
+                
+                elif view == "sagittal":
+                    img_slice = img_data[:, :, d]
+                    lbl_slice = lbl_data[:, :, d] if lbl_data is not None else None
                 
                 #Check for empty slice
                 if not self.test_mode:
@@ -73,14 +91,33 @@ class Dataloader_2D(Dataset):
         """
         vol_i, slice_i = self.slice_indices[idx]
         img_data, lbl_data = self.volumes_cache[vol_i]
+        
 
-        # Extract the corresponding slice
-        img_slice = img_data[slice_i, :, :].copy()  # Shape: [H, W]
+        if self.view == 'axial':
+            # Extract the slice (2D). shape [H, W]
+            img_slice = img_data[slice_i, :, :].copy()
 
-        if self.test_mode:
-            lbl_slice = np.zeros_like(img_slice, dtype=np.int64) #Dummy label
-        else:
-            lbl_slice = lbl_data[slice_i, :, :].copy()
+            if self.test_mode:
+                lbl_slice = np.zeros_like(img_slice, dtype=np.int64)
+            else:
+                lbl_slice = lbl_data[slice_i, :, :].copy()
+        
+        elif self.view == 'coronal':
+            img_slice = img_data[:, slice_i, :].copy()
+
+            if self.test_mode:
+                lbl_slice = np.zeros_like(img_slice, dtype=np.int64)
+            else:
+                lbl_slice = lbl_data[:, slice_i, :].copy()
+
+        elif self.view == 'sagittal':
+
+            img_slice = img_data[:, :, slice_i].copy()
+
+            if self.test_mode:
+                lbl_slice = np.zeros_like(img_slice, dtype=np.int64)
+            else:
+                lbl_slice = lbl_data[:, :, slice_i].copy()
 
 
         # Prepare the sample
